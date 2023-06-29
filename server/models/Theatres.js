@@ -2,7 +2,7 @@ const db = require('../database/db')
 
 class Theatre {
     static async getAllTheatres(){
-        const query = 'SELECT * FROM theatres'
+        const query = 'SELECT theatre_name, theatre_location, phone_number, capacity, play_name, plays_id FROM theatres LEFT JOIN plays ON theatres.plays_id = plays.play_id'
         const { rows }= await db.query(query)
         return rows 
     }
@@ -27,14 +27,18 @@ class Theatre {
         const {rows} = await db.query(query, values)
         return rows[0]
 }
-    static async connectPlay(id, play_name){
-        const play = await db.query(('SELECT play_id FROM plays WHERE play_name = $1'), [play_name])
-        const play_id = play[rows][0]['play_id']
-        const query = 'UPDATE theatres SET play_id=$1 WHERE theatre_id = $2 RETURNING *'
-        const values = [play_id, id]
-        const {rows} = await db.query(query, values)
-        return rows[0]
-    }
+    static async connectPlay(id, play_name) {
+        const play = await db.query(
+        "SELECT play_id FROM plays WHERE play_name = $1",
+        [play_name["play_name"]]
+        );
+        const play_id = play["rows"][0]["play_id"];
+        const query =
+        "UPDATE theatres SET plays_id=$1 WHERE theatre_id = $2 RETURNING *";
+        const values = [play_id, id];
+        const { rows } = await db.query(query, values);
+        return rows[0];
+  }
     static async deleteTheatre(id){
         const query= 'DELETE FROM theatres WHERE theatre_id = $1'
         await db.query(query, [id])     //id is expected as an array of variables not 
